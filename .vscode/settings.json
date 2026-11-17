@@ -1,0 +1,6 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/Django_day_1/venv/bin/python",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/Django_day_1"
+  ]
+}
