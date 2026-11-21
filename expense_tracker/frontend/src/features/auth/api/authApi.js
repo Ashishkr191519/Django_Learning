@@ -1,19 +1,19 @@
-import axios from 'axios'
-
-const api = axios.create({
-    baseURL:'http://127.0.0.1:8000/api/auth/',
-    withCredentials:true
-})
-
-// Register API
-
-export const registerUser = async (userData) => {
-  const response = await api.post("register/", userData);
+import api from '../../../api/api'
+export const initializeCSRF = async () => {
+  const response = await api.get("auth/csrf/");
   return response.data;
 };
 
-// Login API
+// Register API
+export const registerUser = async (userData) => {
+  await initializeCSRF();
+
+  const response = await api.post("auth/register/", userData);
+  return response.data;
+};
 export const loginUser = async (userData) => {
-  const response = await api.post("login/", userData);
+  await initializeCSRF();
+
+  const response = await api.post("auth/login/", userData);
   return response.data;
 };

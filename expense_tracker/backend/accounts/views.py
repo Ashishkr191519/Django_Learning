@@ -5,6 +5,16 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import RegisterSerializer
+from django.http import JsonResponse
+from django.middleware.csrf import get_token
+from django.views.decorators.csrf import ensure_csrf_cookie
+
+
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    return JsonResponse({
+        "csrfToken": get_token(request)
+    })
 
 
 @api_view(["POST"])
@@ -81,3 +91,11 @@ def login_user(request):
 
     return response
 
+
+
+
+@ensure_csrf_cookie
+def get_csrf_token(request):
+    return JsonResponse({
+        "csrfToken": get_token(request)
+    })
