@@ -9,6 +9,8 @@ import Dashboard from "../features/expenses/UI/Dashboard";
 import Transaction from "../features/expenses/UI/Transaction";
 import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
+import AddTransaction from "../features/expenses/UI/AddTransaction";
+import Analytics from "../features/expenses/UI/Analytics";
 
 const router = createBrowserRouter([
   {
@@ -47,6 +49,14 @@ const router = createBrowserRouter([
             path: "transactions",
             element: <Transaction />,
           },
+          {
+            path: "add",
+            element: <AddTransaction />,
+          },
+          {
+            path:"analytics",
+            element:<Analytics/>
+          }
         ],
       },
     ],

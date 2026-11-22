@@ -21,16 +21,24 @@ const transactionSlice = createSlice({
 
     removeTransaction: (state, action) => {
       state.transactions = state.transactions.filter(
-        (transaction) => transaction.id !== action.payload
+        (transaction) => transaction.id !== action.payload,
       );
+    },
+    updateTransaction: (state, action) => {
+      const updatedTransaction = action.payload;
+
+      const index = state.transactions.findIndex(
+        (transaction) => transaction.id === updatedTransaction.id,
+      );
+
+      if (index !== -1) {
+        state.transactions[index] = updatedTransaction;
+      }
     },
   },
 });
 
-export const {
-  setTransactions,
-  addTransaction,
-  removeTransaction,
-} = transactionSlice.actions;
+export const { setTransactions, addTransaction, removeTransaction,updateTransaction } =
+  transactionSlice.actions;
 
 export default transactionSlice.reducer;
