@@ -10,12 +10,6 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 
-@ensure_csrf_cookie
-def get_csrf_token(request):
-    return JsonResponse({
-        "csrfToken": get_token(request)
-    })
-
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -38,7 +32,7 @@ def register_user(request):
     
 
 
-
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def login_user(request):
 
