@@ -39,7 +39,6 @@ def register_user(request):
 
 
 
-@api_view(["POST"])
 @permission_classes([AllowAny])
 def login_user(request):
 
