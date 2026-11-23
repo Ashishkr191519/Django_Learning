@@ -9,22 +9,50 @@ const BASE_URL =
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
-  xsrfCookieName: "csrftoken",
-  xsrfHeaderName: "X-CSRFToken",
-  withXSRFToken: true,
 });
 
 // Refresh ke liye separate Axios instance
 const refreshApi = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
-  xsrfCookieName: "csrftoken",
-  xsrfHeaderName: "X-CSRFToken",
-  withXSRFToken: true,
 });
 
 let refreshPromise = null;
+let csrfPromise = null;
 
+// CSRF token backend se fetch karo
+const getCSRFToken = async () => {
+  if (!csrfPromise) {
+    csrfPromise = axios
+      .get(`${BASE_URL}/auth/csrf/`, {
+        withCredentials: true,
+      })
+      .then((response) => response.data.csrfToken)
+      .finally(() => {
+        csrfPromise = null;
+      });
+  }
+
+  return csrfPromise;
+};
+
+// Unsafe requests mein CSRF header add karo
+const attachCSRF = async (config) => {
+  const method = (config.method || "get").toLowerCase();
+
+  if (["post", "put", "patch", "delete"].includes(method)) {
+    const token = await getCSRFToken();
+    config.headers.set("X-CSRFToken", token);
+  }
+
+  return config;
+};
+
+// Dono instances mein CSRF protection
+api.interceptors.request.use(attachCSRF);
+refreshApi.interceptors.request.use(attachCSRF);
+
+// JWT refresh interceptor
 api.interceptors.response.use(
   (response) => response,
 
@@ -36,7 +64,8 @@ api.interceptors.response.use(
       !originalRequest ||
       originalRequest._retry ||
       originalRequest.url?.includes("auth/login/") ||
-      originalRequest.url?.includes("auth/register/")
+      originalRequest.url?.includes("auth/register/") ||
+      originalRequest.url?.includes("auth/refresh/")
     ) {
       return Promise.reject(error);
     }
