@@ -31,7 +31,7 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="text-3xl font-regular tracking-tight">
           Welcome back, {user?.username || "User"}
         </h1>
         <p className="mt-2 text-sm text-slate-400">
