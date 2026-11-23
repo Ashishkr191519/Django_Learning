@@ -17,9 +17,11 @@ const DashboardLayout = () => {
       {/* Sidebar */}
       <aside className="border-b border-white/10 bg-[#0c1225] p-5 lg:sticky lg:top-0 lg:flex lg:h-screen lg:w-64 lg:shrink-0 lg:flex-col lg:border-b-0 lg:border-r">
         <div className="mb-8 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-indigo-700 text-2xl font-bold shadow-[0_0_25px_#7c3aed55]">
-            ₹
-          </div>
+          <img
+            src="/Neon E Finance App Logo.png"
+            alt="ExpenseFlow Logo"
+            className="h-11 w-11 rounded-xl object-cover shadow-[0_0_25px_#7c3aed55]"
+          />
           <span className="text-xl font-bold tracking-tight">ExpenseFlow</span>
           <span className="rounded-full bg-violet-500/20 px-2 py-1 text-[10px] text-violet-300">
             PRO
@@ -82,22 +84,22 @@ const DashboardLayout = () => {
 
       {/* Main Area */}
       <div className="min-w-0 flex-1">
-        <header className="sticky top-0 z-30 flex min-h-20 flex-wrap items-center justify-between gap-4 border-b border-white/10 bg-[#080d1c]/85 px-5 py-4 backdrop-blur-xl lg:px-8">
-          <div>
+        <header>
+          {/* <div>
             <h1 className="text-xl font-bold">Dashboard</h1>
             <p className="text-xs text-slate-400">
               Manage your finances and achieve your goals.
             </p>
-          </div>
+          </div> */}
 
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <span className="hidden text-sm text-slate-400 sm:block">
               ExpenseFlow Workspace
             </span>
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/20 font-semibold text-violet-300">
               U
             </div>
-          </div>
+          </div> */}
         </header>
 
         <main className="min-h-[calc(100vh-5rem)] p-5 lg:p-8">

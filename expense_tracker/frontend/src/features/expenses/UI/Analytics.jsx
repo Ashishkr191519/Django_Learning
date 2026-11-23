@@ -7,24 +7,19 @@ import SavingsLineChart from "../../../components/SavingsLineChart";
 import useTransactions from "../hooks/useTransactions";
 
 const Analytics = () => {
-  // Get transactions from Redux through custom hook
   const { transactions } = useTransactions();
-
-  // Date filter state
   const [dateFilter, setDateFilter] = useState("all");
 
-  // Filter transactions according to selected date range
   const filteredTransactions = transactions.filter((transaction) => {
-    if (dateFilter === "all") {
-      return true;
-    }
+    if (dateFilter === "all") return true;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const transactionDate = new Date(`${transaction.date}T00:00:00`);
 
-    // This Month
+    if (Number.isNaN(transactionDate.getTime())) return false;
+
     if (dateFilter === "month") {
       return (
         transactionDate.getFullYear() === today.getFullYear() &&
@@ -33,7 +28,6 @@ const Analytics = () => {
       );
     }
 
-    // Last 7 Days or Last 30 Days
     if (dateFilter === "7days" || dateFilter === "30days") {
       const days = dateFilter === "7days" ? 7 : 30;
 
@@ -46,24 +40,16 @@ const Analytics = () => {
     return true;
   });
 
-  // Calculate income from FILTERED transactions
   const totalIncome = filteredTransactions
-    .filter((transaction) => transaction.transaction_type === "income")
-    .reduce((sum, transaction) => {
-      return sum + Number(transaction.amount);
-    }, 0);
+    .filter((t) => t.transaction_type === "income")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  // Calculate expenses from FILTERED transactions
   const totalExpenses = filteredTransactions
-    .filter((transaction) => transaction.transaction_type === "expense")
-    .reduce((sum, transaction) => {
-      return sum + Number(transaction.amount);
-    }, 0);
+    .filter((t) => t.transaction_type === "expense")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
-  // Calculate net savings
   const netSavings = totalIncome - totalExpenses;
 
-  // Summary cards
   const cards = [
     {
       title: "Total Income",
@@ -84,20 +70,16 @@ const Analytics = () => {
 
   return (
     <div className="space-y-8 text-white">
-      {/* Analytics Heading */}
       <div>
         <h1 className="text-3xl font-bold">Analytics</h1>
-
         <p className="mt-2 text-slate-400">
           Analyze your income, expenses and savings.
         </p>
       </div>
 
-      {/* Date Range Filter */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold">Financial Overview</h2>
-
           <p className="mt-1 text-sm text-slate-400">
             Showing {filteredTransactions.length} transactions
           </p>
@@ -116,7 +98,6 @@ const Analytics = () => {
         </select>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid gap-6 md:grid-cols-3">
         {cards.map((card) => (
           <div
@@ -136,13 +117,10 @@ const Analytics = () => {
         ))}
       </div>
 
-      {/* Monthly Income vs Expenses */}
       <MonthlyBarChart transactions={filteredTransactions} />
 
-      {/* Category-wise Spending */}
       <CategoryPieChart transactions={filteredTransactions} />
 
-      {/* Monthly Savings Trend */}
       <SavingsLineChart transactions={filteredTransactions} />
     </div>
   );

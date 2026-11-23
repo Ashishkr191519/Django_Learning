@@ -28,7 +28,9 @@ const formatDate = (date) => {
 
   const parsedDate = new Date(`${date.slice(0, 10)}T00:00:00`);
 
-  if (Number.isNaN(parsedDate.getTime())) return "—";
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "—";
+  }
 
   return parsedDate.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -44,7 +46,9 @@ const RecentTransactions = ({ transactions = [] }) => {
       .sort((a, b) => {
         const dateComparison = b.date.localeCompare(a.date);
 
-        if (dateComparison !== 0) return dateComparison;
+        if (dateComparison !== 0) {
+          return dateComparison;
+        }
 
         return b.id - a.id;
       })
@@ -53,9 +57,13 @@ const RecentTransactions = ({ transactions = [] }) => {
 
   return (
     <section className="min-w-0 overflow-hidden rounded-3xl border border-white/10 bg-[#141a30]/90 shadow-xl">
+      {/* Header */}
       <div className="flex items-center justify-between gap-3 p-6">
         <div>
-          <h2 className="text-lg font-semibold">Recent Transactions</h2>
+          <h2 className="text-lg font-semibold text-white">
+            Recent Transactions
+          </h2>
+
           <p className="mt-1 text-xs text-slate-400">
             Your latest income and expenses
           </p>
@@ -63,56 +71,72 @@ const RecentTransactions = ({ transactions = [] }) => {
 
         <Link
           to="/dashboard/transactions"
-          className="shrink-0 text-xs font-semibold text-violet-400 hover:text-violet-300"
+          className="shrink-0 text-xs font-semibold text-violet-400 transition hover:text-violet-300"
         >
           View All →
         </Link>
       </div>
 
+      {/* Transactions Table */}
       <div className="overflow-x-auto">
         <table className="w-full min-w-[650px] text-left text-sm">
+          {/* Table Header */}
           <thead className="bg-white/5 text-xs text-slate-400">
             <tr>
               <th className="px-5 py-3 font-medium">Transaction</th>
+
               <th className="px-5 py-3 font-medium">Category</th>
+
               <th className="px-5 py-3 font-medium">Date</th>
+
               <th className="px-5 py-3 font-medium">Type</th>
+
               <th className="px-5 py-3 text-right font-medium">Amount</th>
             </tr>
           </thead>
 
+          {/* Table Body */}
           <tbody className="divide-y divide-white/5">
             {recentTransactions.length > 0 ? (
               recentTransactions.map((transaction) => {
                 const isIncome = transaction.transaction_type === "income";
 
+                // Django ForeignKey category name
+                const categoryName = transaction.category_name || "Others";
+
+                // Select icon using category name
                 const icon =
-                  categoryIcons[transaction.category] ||
-                  (isIncome ? "💰" : "💳");
+                  categoryIcons[categoryName] || (isIncome ? "💰" : "💳");
 
                 return (
                   <tr
                     key={transaction.id}
                     className="transition hover:bg-white/5"
                   >
+                    {/* Transaction Title */}
                     <td className="whitespace-nowrap px-5 py-4">
                       <div className="flex items-center gap-3">
                         <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-lg">
                           {icon}
                         </span>
 
-                        <span className="font-medium">{transaction.title}</span>
+                        <span className="font-medium text-white">
+                          {transaction.title}
+                        </span>
                       </div>
                     </td>
 
+                    {/* Category Name */}
                     <td className="whitespace-nowrap px-5 py-4 text-slate-300">
-                      {transaction.category || "Others"}
+                      {categoryName}
                     </td>
 
+                    {/* Date */}
                     <td className="whitespace-nowrap px-5 py-4 text-slate-400">
                       {formatDate(transaction.date)}
                     </td>
 
+                    {/* Transaction Type */}
                     <td className="whitespace-nowrap px-5 py-4">
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold ${
@@ -125,6 +149,7 @@ const RecentTransactions = ({ transactions = [] }) => {
                       </span>
                     </td>
 
+                    {/* Amount */}
                     <td
                       className={`whitespace-nowrap px-5 py-4 text-right font-semibold ${
                         isIncome ? "text-emerald-400" : "text-pink-400"
@@ -137,6 +162,7 @@ const RecentTransactions = ({ transactions = [] }) => {
                 );
               })
             ) : (
+              /* Empty State */
               <tr>
                 <td
                   colSpan={5}

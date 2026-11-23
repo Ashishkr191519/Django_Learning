@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+
 import useTransactions from "../hooks/useTransactions";
+import useCategories from "../../categories/hooks/useCategories";
 
 const Transaction = () => {
   const navigate = useNavigate();
@@ -8,28 +10,45 @@ const Transaction = () => {
   const { transactions, deleteTransaction, editTransaction } =
     useTransactions();
 
-  // Search and filter
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useCategories();
+
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
-  // Edit modal
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [saving, setSaving] = useState(false);
   const [editError, setEditError] = useState("");
 
-  // Open edit modal with existing data
+  // Filter categories according to selected transaction type
+  const editCategories = categories.filter(
+    (category) =>
+      category.category_type === editingTransaction?.transaction_type,
+  );
+
+  // Open edit modal
   const handleEdit = (transaction) => {
-    setEditingTransaction({ ...transaction });
+    setEditingTransaction({
+      ...transaction,
+      category: String(transaction.category ?? ""),
+    });
+
     setEditError("");
   };
 
-  // Handle edit form inputs
+  // Handle edit form changes
   const handleEditChange = (e) => {
     const { name, value } = e.target;
 
     setEditingTransaction((prev) => ({
       ...prev,
       [name]: value,
+
+      // Reset category when transaction type changes
+      ...(name === "transaction_type" ? { category: "" } : {}),
     }));
   };
 
@@ -50,7 +69,7 @@ const Transaction = () => {
         title,
         amount,
         transaction_type,
-        category,
+        category: Number(category),
         date,
       });
 
@@ -82,11 +101,13 @@ const Transaction = () => {
     }
   };
 
-  // Search and filter transactions
+  // Search and filter
   const filteredTransactions = transactions.filter((transaction) => {
-    const matchesSearch = transaction.title
-      .toLowerCase()
-      .includes(search.trim().toLowerCase());
+    const query = search.trim().toLowerCase();
+
+    const matchesSearch =
+      transaction.title.toLowerCase().includes(query) ||
+      (transaction.category_name ?? "").toLowerCase().includes(query);
 
     const matchesFilter =
       filter === "all" || transaction.transaction_type === filter;
@@ -122,7 +143,7 @@ const Transaction = () => {
       <div className="flex flex-wrap gap-4">
         <input
           type="text"
-          placeholder="Search transactions..."
+          placeholder="Search transactions or categories..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className={`${inputClass} min-w-0 flex-1`}
@@ -162,9 +183,14 @@ const Transaction = () => {
                 {/* Title */}
                 <td className="px-6 py-4 font-medium">{transaction.title}</td>
 
-                {/* Category */}
+                {/* Category Name */}
                 <td className="px-6 py-4 text-slate-400">
-                  {transaction.category}
+                  {transaction.category_name ??
+                    categories.find(
+                      (category) =>
+                        category.id === Number(transaction.category),
+                    )?.name ??
+                    "Unknown Category"}
                 </td>
 
                 {/* Date */}
@@ -173,7 +199,7 @@ const Transaction = () => {
                 {/* Type */}
                 <td className="px-6 py-4">
                   <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${
                       transaction.transaction_type === "income"
                         ? "bg-emerald-500/10 text-emerald-400"
                         : "bg-red-500/10 text-red-400"
@@ -245,9 +271,15 @@ const Transaction = () => {
             aria-label="Edit Transaction"
             className="max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-2xl border border-violet-500/30 bg-[#0c1225] p-6 shadow-2xl"
           >
-            {/* Modal Heading */}
+            {/* Modal Header */}
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Edit Transaction</h2>
+              <div>
+                <h2 className="text-2xl font-bold">Edit Transaction</h2>
+
+                <p className="mt-1 text-sm text-slate-400">
+                  Update your transaction details.
+                </p>
+              </div>
 
               <button
                 type="button"
@@ -324,7 +356,7 @@ const Transaction = () => {
               </select>
             </div>
 
-            {/* Category */}
+            {/* Dynamic Category Dropdown */}
             <div>
               <label
                 htmlFor="edit-category"
@@ -333,16 +365,42 @@ const Transaction = () => {
                 Category
               </label>
 
-              <input
+              <select
                 id="edit-category"
-                type="text"
                 name="category"
                 value={editingTransaction.category}
                 onChange={handleEditChange}
-                maxLength={50}
                 required
+                disabled={categoriesLoading || Boolean(categoriesError)}
                 className={inputClass}
-              />
+              >
+                <option value="">
+                  {categoriesLoading
+                    ? "Loading categories..."
+                    : "Select Category"}
+                </option>
+
+                {editCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+
+              {categoriesError && (
+                <p className="mt-2 text-sm text-red-400">
+                  Unable to load categories.
+                </p>
+              )}
+
+              {!categoriesLoading &&
+                !categoriesError &&
+                editCategories.length === 0 && (
+                  <p className="mt-2 text-sm text-amber-400">
+                    No {editingTransaction.transaction_type} categories
+                    available. Create one from the Categories page.
+                  </p>
+                )}
             </div>
 
             {/* Date */}
@@ -385,7 +443,16 @@ const Transaction = () => {
 
               <button
                 type="submit"
-                disabled={saving}
+                disabled={
+                  saving ||
+                  !editingTransaction.category ||
+                  categoriesLoading ||
+                  Boolean(categoriesError) ||
+                  !editCategories.some(
+                    (category) =>
+                      category.id === Number(editingTransaction.category),
+                  )
+                }
                 className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
               >
                 {saving ? "Saving..." : "Save Changes"}

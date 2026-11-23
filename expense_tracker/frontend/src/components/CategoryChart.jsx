@@ -1,12 +1,5 @@
-
 import React, { useMemo } from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 // Category colors
 const categoryColors = {
@@ -19,6 +12,7 @@ const categoryColors = {
   Others: "#64748b",
 };
 
+// Colors for custom categories
 const fallbackColors = [
   "#a855f7",
   "#22d3ee",
@@ -32,11 +26,13 @@ const CategoryChart = ({ transactions = [] }) => {
   const categories = useMemo(() => {
     const categoryTotals = {};
 
-    // Only expense transactions
+    // Group only expense transactions by category name
     transactions
-      .filter((t) => t.transaction_type === "expense")
+      .filter((transaction) => transaction.transaction_type === "expense")
       .forEach((transaction) => {
-        const category = transaction.category || "Others";
+        // Django ForeignKey: category is ID, category_name is name
+        const category = transaction.category_name || "Others";
+
         const amount = Number(transaction.amount);
 
         if (!Number.isFinite(amount)) return;
@@ -49,34 +45,27 @@ const CategoryChart = ({ transactions = [] }) => {
       });
 
     // Convert grouped data into Recharts format
-    return Object.entries(categoryTotals).map(
-      ([name, value], index) => ({
-        name,
-        value,
-        color:
-          categoryColors[name] ||
-          fallbackColors[index % fallbackColors.length],
-      })
-    );
+    return Object.entries(categoryTotals).map(([name, value], index) => ({
+      name,
+      value,
+      color:
+        categoryColors[name] || fallbackColors[index % fallbackColors.length],
+    }));
   }, [transactions]);
 
-  const total = categories.reduce(
-    (sum, item) => sum + item.value,
-    0
-  );
+  // Total expense amount
+  const total = categories.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="min-w-0 rounded-3xl border border-white/10 bg-[#141a30]/90 p-6 shadow-xl">
-      <h2 className="text-lg font-semibold text-white">
-        Expense by Category
-      </h2>
+      {/* Header */}
+      <h2 className="text-lg font-semibold text-white">Expense by Category</h2>
 
-      <p className="mt-1 text-xs text-slate-400">
-        Your spending distribution
-      </p>
+      <p className="mt-1 text-xs text-slate-400">Your spending distribution</p>
 
       {total > 0 ? (
         <>
+          {/* Donut Chart */}
           <div className="relative mx-auto mt-5 h-56 w-full max-w-72">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -92,10 +81,7 @@ const CategoryChart = ({ transactions = [] }) => {
                   stroke="none"
                 >
                   {categories.map((item) => (
-                    <Cell
-                      key={item.name}
-                      fill={item.color}
-                    />
+                    <Cell key={item.name} fill={item.color} />
                   ))}
                 </Pie>
 
@@ -113,16 +99,17 @@ const CategoryChart = ({ transactions = [] }) => {
               </PieChart>
             </ResponsiveContainer>
 
+            {/* Center Total */}
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-2xl font-bold text-white">
                 ₹{total.toLocaleString("en-IN")}
               </span>
-              <span className="text-xs text-slate-400">
-                Total Spent
-              </span>
+
+              <span className="text-xs text-slate-400">Total Spent</span>
             </div>
           </div>
 
+          {/* Category Legend */}
           <div className="mt-5 space-y-3">
             {categories.map((item) => (
               <div
@@ -136,7 +123,8 @@ const CategoryChart = ({ transactions = [] }) => {
                       backgroundColor: item.color,
                     }}
                   />
-                  {item.name}
+
+                  <span>{item.name}</span>
                 </div>
 
                 <span className="font-medium text-white">
@@ -147,11 +135,11 @@ const CategoryChart = ({ transactions = [] }) => {
           </div>
         </>
       ) : (
+        /* Empty State */
         <div className="flex h-72 flex-col items-center justify-center text-slate-400">
           <p className="text-3xl">◇</p>
-          <p className="mt-3 text-sm">
-            No expense data available
-          </p>
+
+          <p className="mt-3 text-sm">No expense data available</p>
         </div>
       )}
     </div>

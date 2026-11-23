@@ -5,10 +5,12 @@ import CategoryChart from "../../../components/CategoryChart";
 import SavingsGoals from "../../../components/SavingsGoals";
 import RecentTransactions from "../../../components/RecentTransactions";
 import useTransactions from "../hooks/useTransactions";
+import { useSelector } from "react-redux";
 
 const Dashboard = () => {
   const { transactions } = useTransactions();
   console.log("Redux Transactions:", transactions);
+  const user = useSelector((state) => state.auth.user);
 
   const totalIncome = transactions
     .filter((transaction) => transaction.transaction_type === "income")
@@ -29,7 +31,9 @@ const Dashboard = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back 👋</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Welcome back, {user?.username || "User"}
+        </h1>
         <p className="mt-2 text-sm text-slate-400">
           Here's what's happening with your finances.
         </p>
@@ -43,7 +47,7 @@ const Dashboard = () => {
       />
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-5">
         <div className="min-w-0 xl:col-span-3">
-          <CashFlowChart transactions={transactions}/>
+          <CashFlowChart transactions={transactions} />
         </div>
 
         <div className="min-w-0 xl:col-span-2">

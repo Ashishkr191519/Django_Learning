@@ -11,6 +11,8 @@ import PublicRoute from "./PublicRoute";
 import ProtectedRoute from "./ProtectedRoute";
 import AddTransaction from "../features/expenses/UI/AddTransaction";
 import Analytics from "../features/expenses/UI/Analytics";
+import Categories from "../features/categories/UI/Categories";
+import Budgets from "../features/Budget/ui/Budgets";
 
 const router = createBrowserRouter([
   {
@@ -56,6 +58,14 @@ const router = createBrowserRouter([
           {
             path:"analytics",
             element:<Analytics/>
+          },
+          {
+            path:"categories",
+            element:<Categories/>
+          },
+          {
+            path:"budgets",
+            element:<Budgets/>
           }
         ],
       },

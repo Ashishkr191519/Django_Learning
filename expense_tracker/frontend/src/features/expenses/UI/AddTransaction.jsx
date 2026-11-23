@@ -1,12 +1,19 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import useTransactions from "../hooks/useTransactions";
 
+import useTransactions from "../hooks/useTransactions";
+import useCategories from "../../categories/hooks/useCategories";
 
 const AddTransaction = () => {
   const navigate = useNavigate();
+
   const { createTransaction } = useTransactions();
+
+  const {
+    categories,
+    loading: categoriesLoading,
+    error: categoriesError,
+  } = useCategories();
 
   const [formData, setFormData] = useState({
     title: "",
@@ -19,28 +26,49 @@ const AddTransaction = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Only categories matching transaction type
+  const filteredCategories = categories.filter(
+    (category) => category.category_type === formData.transaction_type,
+  );
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+
+      // Reset category when switching income/expense
+      ...(name === "transaction_type" ? { category: "" } : {}),
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
-    const success = await createTransaction(formData);
+    if (!formData.category) {
+      setError("Please select a category.");
+      return;
+    }
 
-    setLoading(false);
+    setLoading(true);
 
-    if (success) {
-      navigate("/dashboard");
-    } else {
+    try {
+      const success = await createTransaction({
+        ...formData,
+        category: Number(formData.category),
+      });
+
+      if (success) {
+        navigate("/dashboard");
+      } else {
+        setError("Failed to add transaction. Please try again.");
+      }
+    } catch (err) {
       setError("Failed to add transaction. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,6 +79,7 @@ const AddTransaction = () => {
     <div className="mx-auto max-w-2xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Add Transaction</h1>
+
         <p className="mt-2 text-sm text-slate-400">
           Record your income or expense.
         </p>
@@ -60,10 +89,12 @@ const AddTransaction = () => {
         onSubmit={handleSubmit}
         className="space-y-6 rounded-2xl border border-white/10 bg-[#0c1225] p-6 shadow-xl"
       >
+        {/* Title */}
         <div>
           <label className="mb-2 block text-sm text-slate-300">
             Transaction Title
           </label>
+
           <input
             type="text"
             name="title"
@@ -76,10 +107,12 @@ const AddTransaction = () => {
           />
         </div>
 
+        {/* Amount */}
         <div>
           <label className="mb-2 block text-sm text-slate-300">
             Amount (₹)
           </label>
+
           <input
             type="number"
             name="amount"
@@ -93,10 +126,12 @@ const AddTransaction = () => {
           />
         </div>
 
+        {/* Transaction Type */}
         <div>
           <label className="mb-2 block text-sm text-slate-300">
             Transaction Type
           </label>
+
           <select
             name="transaction_type"
             value={formData.transaction_type}
@@ -108,26 +143,48 @@ const AddTransaction = () => {
           </select>
         </div>
 
+        {/* Dynamic Category Dropdown */}
         <div>
-          <label className="mb-2 block text-sm text-slate-300">
-            Category
-          </label>
-          <input
-            type="text"
+          <label className="mb-2 block text-sm text-slate-300">Category</label>
+
+          <select
             name="category"
             value={formData.category}
             onChange={handleChange}
-            placeholder="e.g. Food, Salary, Transport"
-            maxLength={50}
             required
+            disabled={categoriesLoading || Boolean(categoriesError)}
             className={inputClass}
-          />
+          >
+            <option value="">
+              {categoriesLoading ? "Loading categories..." : "Select Category"}
+            </option>
+
+            {filteredCategories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+
+          {categoriesError ? (
+            <p className="mt-2 text-sm text-red-400">
+              Unable to load categories.
+            </p>
+          ) : (
+            !categoriesLoading &&
+            filteredCategories.length === 0 && (
+              <p className="mt-2 text-sm text-amber-400">
+                No {formData.transaction_type} categories found. Create one from
+                the Categories page.
+              </p>
+            )
+          )}
         </div>
 
+        {/* Date */}
         <div>
-          <label className="mb-2 block text-sm text-slate-300">
-            Date
-          </label>
+          <label className="mb-2 block text-sm text-slate-300">Date</label>
+
           <input
             type="date"
             name="date"
@@ -138,10 +195,14 @@ const AddTransaction = () => {
           />
         </div>
 
+        {/* Error */}
         {error && (
-          <p className="text-sm text-red-400">{error}</p>
+          <p role="alert" className="text-sm text-red-400">
+            {error}
+          </p>
         )}
 
+        {/* Buttons */}
         <div className="flex gap-3">
           <button
             type="button"
@@ -153,7 +214,12 @@ const AddTransaction = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={
+              loading ||
+              categoriesLoading ||
+              Boolean(categoriesError) ||
+              filteredCategories.length === 0
+            }
             className="flex-1 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 font-semibold text-white hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Saving..." : "Add Transaction"}
