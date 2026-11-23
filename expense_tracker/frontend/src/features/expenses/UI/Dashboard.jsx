@@ -54,12 +54,9 @@ const Dashboard = () => {
           <CategoryChart transactions={transactions} />
         </div>
       </section>
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-5">
-        <div className="min-w-0 xl:col-span-2">
-          <SavingsGoals />
-        </div>
 
-        <div className="min-w-0 xl:col-span-3">
+      <section className="w-full">
+        <div className="w-full min-w-0">
           <RecentTransactions transactions={transactions} />
         </div>
       </section>
