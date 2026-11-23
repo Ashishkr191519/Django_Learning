@@ -1,13 +1,16 @@
+
 import { Navigate, Outlet } from "react-router";
 import { useSelector } from "react-redux";
+import AuthLoader from "../components/AuthLoader";
 
 const ProtectedRoute = () => {
   const { isAuthenticated, authChecked } = useSelector(
     (state) => state.auth
   );
 
+  // Authentication check hone tak modern spinner
   if (!authChecked) {
-    return <p>Checking authentication...</p>;
+    return <AuthLoader />;
   }
 
   return isAuthenticated

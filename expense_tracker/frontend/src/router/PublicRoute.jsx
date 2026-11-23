@@ -1,13 +1,16 @@
+
 import { Navigate, Outlet } from "react-router";
 import { useSelector } from "react-redux";
+import AuthLoader from "../components/AuthLoader";
 
 const PublicRoute = () => {
   const { isAuthenticated, authChecked } = useSelector(
     (state) => state.auth
   );
 
+  // Authentication verify hone tak spinner
   if (!authChecked) {
-    return <p>Checking authentication...</p>;
+    return <AuthLoader />;
   }
 
   return isAuthenticated
