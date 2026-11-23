@@ -24,12 +24,16 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-ph^=sn2l4r_m=y*+5)q8)^_2smn)f0v!ljh+9i5cqdtgi!0m6="
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv("ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+]
 
 
 # Application definition
@@ -49,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -94,6 +99,11 @@ DATABASES = {
         "PASSWORD": os.environ["DB_PASSWORD"],
         "HOST": os.environ["DB_HOST"],
         "PORT": os.environ["DB_PORT"],
+        "CONN_MAX_AGE": 0,
+        "OPTIONS": {
+            "sslmode": os.getenv("DB_SSLMODE", "prefer"),
+            "prepare_threshold": None,
+        },
     }
 }
 
@@ -133,6 +143,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 
 # Email
@@ -145,18 +162,61 @@ MAILERS = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+    if origin.strip()
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
 
+# JWT Configuration
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
 }
+
+# JWT Cookie Configuration
+AUTH_COOKIE_SECURE = not DEBUG
+
+AUTH_COOKIE_SAMESITE = (
+    "None" if not DEBUG else "Lax"
+)
+
+AUTH_COOKIE_HTTPONLY = True
+
+AUTH_COOKIE_ACCESS_MAX_AGE = 300
+AUTH_COOKIE_REFRESH_MAX_AGE = 604800
+
+# CSRF Configuration
 CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+    origin.strip()
+    for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS", ""
+    ).split(",")
+    if origin.strip()
 ]
+
+CSRF_COOKIE_SECURE = not DEBUG
+
+CSRF_COOKIE_SAMESITE = (
+    "None" if not DEBUG else "Lax"
+)
+
+# Keep CSRF cookie readable if your frontend
+# needs it in same-origin development.
+CSRF_COOKIE_HTTPONLY = False
+
+# Production HTTPS
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = (
+        "HTTP_X_FORWARDED_PROTO",
+        "https"
+    )
+
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+    SECURE_HSTS_SECONDS = 3600
+

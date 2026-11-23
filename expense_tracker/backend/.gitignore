@@ -1,1 +1,10 @@
 .env
+.env.*
+!.env.example
+
+venv/
+__pycache__/
+*.pyc
+
+staticfiles/
+db.sqlite3
