@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "rest_framework",
     'expenses',
     "accounts",
+    "ai_assistant"
 ]
 
 MIDDLEWARE = [
@@ -66,6 +67,9 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "accounts.authentication.CookieJWTAuthentication",
     ],
+    "DEFAULT_THROTTLE_RATES": {
+    "ashita": "10/minute",
+    },
 }
 
 ROOT_URLCONF = "config.urls"

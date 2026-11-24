@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, Outlet } from "react-router";
 import useAuth from "../features/auth/hooks/useAuth";
+import Chatbot from "../features/chatbot/UI/Chatbot";
 const menuItems = [
   { label: "Dashboard", path: "/dashboard", icon: "◈" },
   { label: "Transactions", path: "/dashboard/transactions", icon: "⇄" },
@@ -105,6 +106,7 @@ const DashboardLayout = () => {
         <main className="min-h-[calc(100vh-5rem)] p-5 lg:p-8">
           <Outlet />
         </main>
+        <Chatbot/>
       </div>
     </div>
   );
